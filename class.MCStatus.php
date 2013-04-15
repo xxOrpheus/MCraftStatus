@@ -8,12 +8,28 @@ class MCStatus {
                               'players'    => -1,
                               'maxPlayers' => -1);
 
+    /**
+     *
+     * Constructor.
+     *
+     * @param string $ip   The IP of the server.
+     * @param int    $port The port of the server.
+     *
+     */
     public function __construct($ip = null, $port = 25565) {
         if($ip !== null) {
             $this->setServer($ip, $port);
         }
     }
 
+    /**
+     *
+     * Set the IP and/or port of the server.
+     *
+     * @param string $ip   The IP of the server.
+     * @param int    $port The port of the server.
+     *
+     */
     public function setServer($ip, $port = 25565) {
         if($port === null) {
             $port = 25565;
@@ -23,6 +39,15 @@ class MCStatus {
         $this->port = (int) $port;
     }
 
+    /**
+     *
+     * Get the status of the server.
+     *
+     * @param bool $colorize Should we format the string?
+     *
+     * @return mixed
+     *
+     */
     public function getStatus($colorize = true) {
         $f = fsockopen($this->ip, $this->port, $errno, $errstr, 5);
         if($f === false) {
@@ -51,6 +76,14 @@ class MCStatus {
         }
     }
 
+    /**
+     *
+     * Colorizes the string.
+     *
+     * @param string $string The string to be formatted.
+     *
+     * @return string
+     */
     protected function colorize($string) {
         preg_match_all('/(§(\d))/', $string, $colors);
 
