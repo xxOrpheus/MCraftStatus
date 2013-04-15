@@ -29,3 +29,7 @@ Usage
 	</body>
 </html>
 ```
+
+Example
+=======
+A working example can be found [here](http://cashgoat.us/MCraft)
