@@ -37,6 +37,9 @@ class MCStatus {
 
         $this->ip = $ip;
         $this->port = (int) $port;
+        if($this->port < 0 || $this->port > 65535) {
+            throw new \Exception(__METHOD__ . ': Port range: 1-65535');
+        }
     }
 
     /**
