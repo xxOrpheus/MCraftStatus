@@ -27,7 +27,7 @@ Usage
 	<body>
 		<?php
 		require 'class.MCStatus.php';
-		$mcstatus = new Orpheus\MCStatus('oreminecraft.net');
+		$mcstatus = new Orpheus\MCStatus('play.hackercraft.net');
 		$statusInfo = $mcstatus->getStatus();
 		foreach($statusInfo as $key => $info) {
 			echo $key . ' = ' . $info . '<br />';;
