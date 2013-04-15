@@ -67,6 +67,8 @@ class MCStatus {
 
             $motd = $colorize == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
             $this->status = array(
+                'ip'         => $this->ip,
+                'port'         => $this->port,
                 'online'     => true,
                 'version'    => $result[0],
                 'motd'       => $motd,
@@ -109,7 +111,7 @@ class MCStatus {
             'm' => '<span style="text-decoration: strikethrough;">',
             'n' => '<span style="text-decoration: underline;">',
             'o' => '<span style="font-style: italic;">',
-            'r' => '<span style="text-shadow:1px 1px 0px #000000 !important; color: #000000 !important; font-style: none !important; font-weight: normal !important; text-decoration: none !important;">'
+            'r' => '<span style="text-shadow:1px 1px 0px #2A2A2A !important; color: #AAAAAA !important; font-style: normal !important; font-weight: normal !important; text-decoration: none !important;">'
         );
 
         $tags = 0;
