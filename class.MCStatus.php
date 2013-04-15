@@ -65,7 +65,7 @@ class MCStatus {
                 $result = explode("\x00", $result);
             }
 
-            $motd = $colorize == true ? $this->colorize($result[count($result) - 3]) : $result[count($result) - 3];
+            $motd = $colorize == true ? $this->colorize($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
             $this->status = array(
                 'online'     => true,
                 'version'    => $result[0],
