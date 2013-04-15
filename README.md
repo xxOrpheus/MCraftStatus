@@ -29,8 +29,12 @@ Usage
 		require 'class.MCStatus.php';
 		$mcstatus = new Orpheus\MCStatus('play.hackercraft.net');
 		$statusInfo = $mcstatus->getStatus();
-		foreach($statusInfo as $key => $info) {
-			echo $key . ' = ' . $info . '<br />';;
+		if($statusInfo['online'] == true) {
+			foreach($statusInfo as $key => $info) {
+				echo $key . ' = ' . $info . '<br />';;
+			}
+		} else {
+			echo 'play.hackercraft.net is offline.';
 		}
 		?>
 	</body>
