@@ -11,7 +11,10 @@
 				font-family: minecraft;
 				font-size: 12pt;
 				font-smooth: never;
+				text-shadow:2px 2px 0px #3F3F3F;
+				color: #FFFFFF;
 				-webkit-font-smoothing: none;
+				background-image: url('images/blocks/dirt_dark.png');
 			}
 		</style>
 	</head>
