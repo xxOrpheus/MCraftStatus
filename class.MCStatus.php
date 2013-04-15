@@ -65,10 +65,11 @@ class MCStatus {
                 $result = explode("\x00", $result);
             }
 
+            $motd = $colorize == true ? $this->colorize($result[count($result) - 3]) : $result[count($result) - 3];
             $this->status = array(
                 'online'     => true,
                 'version'    => $result[0],
-                'motd'       => $colorize == true ? $this->colorize($result[count($result) - 3]) : $result[count($result) - 3)],
+                'motd'       => $motd,
                 'players'    => (int) $result[count($result) - 2],
                 'maxPlayers' => (int) $result[count($result) - 1]
             );
