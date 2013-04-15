@@ -9,7 +9,9 @@
 
 			body {
 				font-family: minecraft;
-				font-size: 20pt;
+				font-size: 12pt;
+				font-smooth: never;
+				-webkit-font-smoothing: none;
 			}
 		</style>
 	</head>
