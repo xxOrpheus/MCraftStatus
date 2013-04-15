@@ -65,7 +65,7 @@ class MCStatus {
                 $result = explode("\x00", $result);
             }
 
-            $motd = $colorize == true ? $this->colorize($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
+            $motd = $colorize == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
             $this->status = array(
                 'online'     => true,
                 'version'    => $result[0],
@@ -85,10 +85,10 @@ class MCStatus {
      *
      * @return string
      */
-    protected function colorize($string) {
-        preg_match_all('/(§(\d))/', $string, $colors);
+    protected function formatString($string) {
+        preg_match_all('/(§([\d\w]))/', $string, $formats);
 
-        $htmlColors = array(
+        $replacements = array(
             0 => '<span style="text-shadow:1px 1px 0px #000000; color: #000000;">',
             1 => '<span style="text-shadow:1px 1px 0px #00002A; color: #0000AA;">',
             2 => '<span style="text-shadow:1px 1px 0px #002A00; color: #00AA00;">',
@@ -108,8 +108,8 @@ class MCStatus {
         );
 
         $tags = 0;
-        foreach($colors[1] as $key => $color) {
-            $string = preg_replace('/' . $color . '/', $htmlColors[$key], $string);
+        foreach($formats[1] as $key => $format) {
+            $string = preg_replace('/' . $format . '/', $replacements[$key], $string);
             $tags++;
         }
 
