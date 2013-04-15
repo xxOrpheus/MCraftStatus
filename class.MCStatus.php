@@ -104,12 +104,17 @@ class MCStatus {
             'c' => '<span style="text-shadow:1px 1px 0px #3F1515; color: #FF5555;">',
             'd' => '<span style="text-shadow:1px 1px 0px #3F153F; color: #FF55FF;">',
             'e' => '<span style="text-shadow:1px 1px 0px #3F3F15; color: #FFFF55;">',
-            'f' => '<span style="text-shadow:1px 1px 0px #3F3F3F; color: #FFFFFF;">'
+            'f' => '<span style="text-shadow:1px 1px 0px #3F3F3F; color: #FFFFFF;">',
+            'l' => '<span style="font-weight: bold;">',
+            'm' => '<span style="text-decoration: strikethrough;">',
+            'n' => '<span style="text-decoration: underline;">',
+            'o' => '<span style="font-style: italic;">',
+            'r' => '<span style="text-shadow:1px 1px 0px #000000 !important; color: #000000 !important; font-style: none !important; font-weight: normal !important; text-decoration: none !important;">'
         );
 
         $tags = 0;
         foreach($formats[1] as $key => $format) {
-            $string = preg_replace('/' . $format . '/', $replacements[$key], $string);
+            $string = preg_replace('/' . $format . '/', $replacements[$formats[2][$key]], $string);
             $tags++;
         }
 
