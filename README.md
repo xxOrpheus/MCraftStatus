@@ -8,11 +8,18 @@ Usage
 ```php
 <!DOCTYPE html>
 <html>
-  <head>
+	<head>
 		<style type="text/css">
+			@font-face {
+				font-family: minecraft;
+				src: url('minecraft.ttf');
+			}
+
 			body {
-				font-family: arial, helvetica, sans-serif;
-				font-size: 10pt;
+				font-family: minecraft;
+				font-size: 12pt;
+				font-smooth: never;
+				-webkit-font-smoothing: none;
 			}
 		</style>
 	</head>
