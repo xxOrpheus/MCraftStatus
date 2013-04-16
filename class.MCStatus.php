@@ -46,12 +46,12 @@ class MCStatus {
      *
      * Get the status of the server.
      *
-     * @param bool $colorize Should we format the string?
+     * @param bool $format Should we format the string?
      *
      * @return mixed
      *
      */
-    public function getStatus($colorize = true) {
+    public function getStatus($format = true) {
         $f = fsockopen($this->ip, $this->port, $errno, $errstr, 5);
         if($f === false) {
             return false;
@@ -68,7 +68,7 @@ class MCStatus {
                 $result = explode("\x00", $result);
             }
 
-            $motd = $colorize == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
+            $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
             $this->status = array(
                 'ip'         => $this->ip,
                 'port'         => $this->port,
@@ -93,33 +93,11 @@ class MCStatus {
     protected function formatString($string) {
         preg_match_all('/(§([\d\w]))/', $string, $formats);
 
-        $replacements = array(
-            0 => '<span style="text-shadow:1px 1px 0px #000000; color: #000000;">',
-            1 => '<span style="text-shadow:1px 1px 0px #00002A; color: #0000AA;">',
-            2 => '<span style="text-shadow:1px 1px 0px #002A00; color: #00AA00;">',
-            3 => '<span style="text-shadow:1px 1px 0px #002A2A; color: #00AAAA;">',
-            4 => '<span style="text-shadow:1px 1px 0px #2A0000; color: #AA0000;">',
-            5 => '<span style="text-shadow:1px 1px 0px #2A002A; color: #AA00AA;">',
-            6 => '<span style="text-shadow:1px 1px 0px #2A2A00; color: #FFAA00;">',
-            7 => '<span style="text-shadow:1px 1px 0px #2A2A2A; color: #AAAAAA;">',
-            8 => '<span style="text-shadow:1px 1px 0px #151515; color: #555555;">',
-            9 => '<span style="text-shadow:1px 1px 0px #15153F; color: #5555FF;">',
-            'a' => '<span style="text-shadow:1px 1px 0px #153F15; color: #55FF55;">',
-            'b' => '<span style="text-shadow:1px 1px 0px #153F3F; color: #55FFFF;">',
-            'c' => '<span style="text-shadow:1px 1px 0px #3F1515; color: #FF5555;">',
-            'd' => '<span style="text-shadow:1px 1px 0px #3F153F; color: #FF55FF;">',
-            'e' => '<span style="text-shadow:1px 1px 0px #3F3F15; color: #FFFF55;">',
-            'f' => '<span style="text-shadow:1px 1px 0px #3F3F3F; color: #FFFFFF;">',
-            'l' => '<span style="font-weight: bold;">',
-            'm' => '<span style="text-decoration: strikethrough;">',
-            'n' => '<span style="text-decoration: underline;">',
-            'o' => '<span style="font-style: italic;">',
-            'r' => '<span style="text-shadow:1px 1px 0px #2A2A2A !important; color: #AAAAAA !important; font-style: normal !important; font-weight: normal !important; text-decoration: none !important;">'
-        );
-
+        $replacements = json_decode(file_get_contents(__DIR__ . '/formats.json'), true);
+            
         $tags = 0;
         foreach($formats[1] as $key => $format) {
-            $string = preg_replace('/' . $format . '/', $replacements[$formats[2][$key]], $string);
+            $string = preg_replace('/' . $format . '/', '<span style="' . $replacements[$formats[2][$key]] . '">', $string);
             $tags++;
         }
 
