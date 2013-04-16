@@ -1,0 +1,23 @@
+{
+    "0": "text-shadow:1px 1px 0px #000000; color: #000000;",
+    "1": "text-shadow:1px 1px 0px #00002A; color: #0000AA;",
+    "2": "text-shadow:1px 1px 0px #002A00; color: #00AA00;",
+    "3": "text-shadow:1px 1px 0px #002A2A; color: #00AAAA;",
+    "4": "text-shadow:1px 1px 0px #2A0000; color: #AA0000;",
+    "5": "text-shadow:1px 1px 0px #2A002A; color: #AA00AA;",
+    "6": "text-shadow:1px 1px 0px #2A2A00; color: #FFAA00;",
+    "7": "text-shadow:1px 1px 0px #2A2A2A; color: #AAAAAA;",
+    "8": "text-shadow:1px 1px 0px #151515; color: #555555;",
+    "9": "text-shadow:1px 1px 0px #15153F; color: #5555FF;",
+    "a": "text-shadow:1px 1px 0px #153F15; color: #55FF55;",
+    "b": "text-shadow:1px 1px 0px #153F3F; color: #55FFFF;",
+    "c": "text-shadow:1px 1px 0px #3F1515; color: #FF5555;",
+    "d": "text-shadow:1px 1px 0px #3F153F; color: #FF55FF;",
+    "e": "text-shadow:1px 1px 0px #3F3F15; color: #FFFF55;",
+    "f": "text-shadow:1px 1px 0px #3F3F3F; color: #FFFFFF;",
+    "l": "font-weight: bold;",
+    "m": "text-decoration: strikethrough;",
+    "n": "text-decoration: underline;",
+    "o": "font-style: italic;",
+    "r": "text-shadow:1px 1px 0px #2A2A2A !important; color: #AAAAAA !important; font-style: normal !important; font-weight: normal !important; text-decoration: none !important;\">"
+}
