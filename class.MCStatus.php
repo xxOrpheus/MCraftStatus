@@ -35,8 +35,8 @@ class MCStatus {
             $port = 25565;
         }
 
-        $this->ip = $ip;
-        $this->port = (int) $port;
+        $this->ip = $this->status['ip'] = $ip;
+        $this->port = $this->status['port'] = (int) $port;
         if($this->port < 0 || $this->port > 65535) {
             throw new \Exception(__METHOD__ . ': Port range: 1-65535');
         }
@@ -52,16 +52,18 @@ class MCStatus {
      *
      */
     public function getStatus($format = true) {
-        $f = fsockopen($this->ip, $this->port, $errno, $errstr, 5);
+        $f = @fsockopen($this->ip, $this->port, $errno, $errstr, 5);
         if($f === false) {
-            return false;
+            $this->status['online'] = false;
+            return $this->status;
         }
 
         fwrite($f, "\xFE\x01");
         $result = fread($f, 256);
 
         if(substr($result, 0, 1) != "\xff") {
-            return false;
+            $this->status['online'] = false;
+            return $this->status;
         } else {
             if(substr($result, 3, 5) == "\x00\xa7\x00\x31\x00"){
                 $result = mb_convert_encoding(substr($result, 15), 'UTF-8', 'UCS-2');
@@ -71,7 +73,7 @@ class MCStatus {
             $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
             $this->status = array(
                 'ip'         => $this->ip,
-                'port'         => $this->port,
+                'port'       => $this->port,
                 'online'     => true,
                 'version'    => $result[0],
                 'motd'       => $motd,
