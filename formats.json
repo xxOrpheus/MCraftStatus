@@ -19,5 +19,5 @@
     "m": "text-decoration: strikethrough;",
     "n": "text-decoration: underline;",
     "o": "font-style: italic;",
-    "r": "text-shadow:1px 1px 0px #2A2A2A !important; color: #AAAAAA !important; font-style: normal !important; font-weight: normal !important; text-decoration: none !important;\">"
+    "r": "text-shadow:1px 1px 0px #2A2A2A !important; color: #AAAAAA !important; font-style: normal !important; font-weight: normal !important; text-decoration: none !important;"
 }
