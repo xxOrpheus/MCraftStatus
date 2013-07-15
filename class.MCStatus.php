@@ -72,7 +72,7 @@ class MCStatus {
             $this->status = substr($this->status, 11);
             $this->status = explode("\x00\x00\x01player_\x00\x00", $this->status);
             $players = isset($this->status[1]) ? substr($this->status[1], 0, -2) : '';
-            $players = $players == true ? explode($players, 0x00) : array();
+            $players = $players == true ? explode("\x00", $players) : array();
             $this->status = explode("\x00", $this->status[0]);
             $array = array();
 
@@ -96,6 +96,7 @@ class MCStatus {
             }
 
             $array['players'] = $players;
+            $array['ip'] = $this->ip;
             return $array;
         } else {
             fwrite($this->socket, "\xFE\x01");
