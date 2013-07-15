@@ -8,7 +8,13 @@ Usage
 <?php
 require 'class.MCStatus.php';
 $mcstatus = new Orpheus\MCStatus('127.0.0.1');
-$status = $mcstatus->getStatus(true, true); // if you do not have enable-query set to "true", set the second argument to false or remove it.
+
+// using enable-query=true
+$status = $mcstatus->getStatus(true, true);
+
+// using enable-query=false
+$status = $mcstatus->getStatus(true);
+
 echo '<pre>';
 var_dump($status);
 echo '</pre>';
