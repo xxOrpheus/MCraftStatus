@@ -54,14 +54,18 @@ class MCStatus {
      */
     public function getStatus($format = true, $enableQuery = false) {
         $udp = $enableQuery === true ? 'udp://' : '';
+        $start = microtime(true);
         $this->socket = @fsockopen($udp . $this->ip, $this->port, $errno, $errstr, 5);
         if(!$this->socket) {
             throw new \Exception('Error while spawning socket: "' . $errstr . '"');
         }
+
         stream_set_timeout($this->socket, 5);
 
         if($enableQuery === true) {
             $challenge = $this->getChallenge();
+            $end = microtime(true);
+        	$latency = floor(($end - $start) * 1000);
 
             if($this->socket === false) {
                 $this->status['online'] = false;
@@ -86,6 +90,10 @@ class MCStatus {
 
                         case 'plugins':
                             $plugins = explode(': ', $array[$s]);
+                            if(!isset($plugins[1])) {
+                            	$array['server'] = 'Vanilla';
+                            	break;
+                            }
                             $serverVersion = $plugins[0];
                             $pluginList = explode('; ', $plugins[1]);
                             $array['server'] = $serverVersion;
@@ -97,9 +105,13 @@ class MCStatus {
 
             $array['players'] = $players;
             $array['ip'] = $this->ip;
+            $array['lat'] = $latency;
             return $array;
         } else {
             fwrite($this->socket, "\xFE\x01");
+        	$end = microtime(true);
+        	$latency = floor(($end - $start) * 1000);
+
             $result = fread($this->socket, 256);
 
             if(substr($result, 0, 1) != "\xff") {
@@ -119,7 +131,8 @@ class MCStatus {
                     'version'    => $result[0],
                     'motd'       => $motd,
                     'players'    => (int) $result[count($result) - 2],
-                    'maxPlayers' => (int) $result[count($result) - 1]
+                    'maxPlayers' => (int) $result[count($result) - 1],
+                    'lat'        => $latency
                 );
                 return $this->status;
             }
@@ -141,7 +154,7 @@ class MCStatus {
             
         $tags = 0;
         foreach($formats[1] as $key => $format) {
-            $string = preg_replace('/' . $this->socketormat . '/', '<span style="' . $replacements[$formats[2][$key]] . '">', $string);
+            $string = preg_replace('/' . $format . '/', '<span style="' . $replacements[$formats[2][$key]] . '">', $string);
             $tags++;
         }
 
