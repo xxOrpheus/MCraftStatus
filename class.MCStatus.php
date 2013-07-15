@@ -185,8 +185,8 @@ class MCStatus {
         }
 
         $data = fread($this->socket, 2048);
-        if(!$data || strlen($data) < 5 || $data[ 0 ] != $this->lastPacket[2]) {
-            return false;
+        if(!$data || strlen($data) < 5 || $data[0] != $this->lastPacket[2]) {
+            throw new \Exception('Failure to read packet');
         }
 
         return substr($data, 5);
