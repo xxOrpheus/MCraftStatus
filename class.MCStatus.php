@@ -7,6 +7,7 @@ class MCStatus {
                               'motd'       => null,
                               'players'    => -1,
                               'maxPlayers' => -1);
+    protected $socket = null, $challenge = null, $lastPacket = null;
 
     /**
      *
@@ -46,41 +47,68 @@ class MCStatus {
      *
      * Get the status of the server.
      *
-     * @param bool $format Should we format the string?
+     * @param bool $this->socketormat Should we format the string?
      *
      * @return mixed
      *
      */
-    public function getStatus($format = true) {
-        $f = @fsockopen($this->ip, $this->port, $errno, $errstr, 5);
-        if($f === false) {
-            $this->status['online'] = false;
-            return $this->status;
+    public function getStatus($format = true, $enableQuery = false) {
+        $udp = $enableQuery === true ? 'udp://' : '';
+        $this->socket = @fsockopen($udp . $this->ip, $this->port, $errno, $errstr, 5);
+        if(!$this->socket) {
+            throw new \Exception('Error while spawning socket: "' . $errstr . '"');
         }
 
-        fwrite($f, "\xFE\x01");
-        $result = fread($f, 256);
+        if($enableQuery === true) {
+            $challenge = $this->getChallenge();
 
-        if(substr($result, 0, 1) != "\xff") {
-            $this->status['online'] = false;
-            return $this->status;
-        } else {
-            if(substr($result, 3, 5) == "\x00\xa7\x00\x31\x00"){
-                $result = mb_convert_encoding(substr($result, 15), 'UTF-8', 'UCS-2');
-                $result = explode("\x00", $result);
+            if($this->socket === false) {
+                $this->status['online'] = false;
+                return $this->status;
             }
 
-            $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
-            $this->status = array(
-                'ip'         => $this->ip,
-                'port'       => $this->port,
-                'online'     => true,
-                'version'    => $result[0],
-                'motd'       => $motd,
-                'players'    => (int) $result[count($result) - 2],
-                'maxPlayers' => (int) $result[count($result) - 1]
-            );
-            return $this->status;
+            $this->status = $this->write(0x00, $challenge . pack('c*', 0x00, 0x00, 0x00, 0x00));
+            $this->status = substr($this->status, 11);
+            $this->status = explode("\x00\x00\x01player_\x00\x00", $this->status);
+            $players = substr($this->status[1], 0, -2);
+            $players = $players == true ? explode($players, 0x00) : array();
+            $this->status = explode("\x00", $this->status[0]);
+            $array = array();
+
+            foreach($this->status as $key => $s) {
+                if($key % 2 == 0 && isset($this->status[$key + 1])) {
+                    $array[$s] = $this->status[$key + 1];
+                }
+            }
+
+            $array['hostname'] = $format === true ? $this->formatString($array['hostname']) : $array['hostname'];
+            $array['players'] = $players;
+            return $array;
+        } else {
+            fwrite($this->socket, "\xFE\x01");
+            $result = fread($this->socket, 256);
+
+            if(substr($result, 0, 1) != "\xff") {
+                $this->status['online'] = false;
+                return $this->status;
+            } else {
+                if(substr($result, 3, 5) == "\x00\xa7\x00\x31\x00"){
+                    $result = mb_convert_encoding(substr($result, 15), 'UTF-8', 'UCS-2');
+                    $result = explode("\x00", $result);
+                }
+
+                $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
+                $this->status = array(
+                    'ip'         => $this->ip,
+                    'port'       => $this->port,
+                    'online'     => true,
+                    'version'    => $result[0],
+                    'motd'       => $motd,
+                    'players'    => (int) $result[count($result) - 2],
+                    'maxPlayers' => (int) $result[count($result) - 1]
+                );
+                return $this->status;
+            }
         }
     }
 
@@ -99,7 +127,7 @@ class MCStatus {
             
         $tags = 0;
         foreach($formats[1] as $key => $format) {
-            $string = preg_replace('/' . $format . '/', '<span style="' . $replacements[$formats[2][$key]] . '">', $string);
+            $string = preg_replace('/' . $this->socketormat . '/', '<span style="' . $replacements[$formats[2][$key]] . '">', $string);
             $tags++;
         }
 
@@ -108,6 +136,47 @@ class MCStatus {
         }
 
         return $string;
+    }
+
+    /**
+     *
+     * Get the challenge - For servers with "enable-query" set to true.
+     *
+     */
+    public function getChallenge() {
+        $in = $this->write(0x09);
+        $this->challenge = pack('N', $in);
+        return $this->challenge;
+    }
+
+    /**
+     *
+     * Write to the socket - for servers with "enable-query" set to true
+     *
+     * @return The response
+     *
+     */
+    public function write($packet, $data = '') {
+        if(!$this->socket) {
+            return false;
+        }
+
+        $packet = pack('c*', 0xFE, 0xFD, $packet, 0x01, 0x02, 0x03, 0x04) . $data;
+        $this->lastPacket = $packet;
+        $bufLen = strlen($packet);
+        $fw = fwrite($this->socket, $packet, $bufLen);
+
+        if($fw !== $bufLen) {
+            throw new \Exception('Failure to send packet');
+        }
+
+        $data = fread($this->socket, 2048);
+        
+        if(strlen($data) < 5 || $data[0] != $this->lastPacket[2]) {
+            return false;
+        }
+
+        return substr($data, 5);
     }
 }
 ?>
