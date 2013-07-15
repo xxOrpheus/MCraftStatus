@@ -47,7 +47,7 @@ class MCStatus {
      *
      * Get the status of the server.
      *
-     * @param bool $this->socketormat Should we format the string?
+     * @param bool $format Should we format the string?
      *
      * @return mixed
      *
