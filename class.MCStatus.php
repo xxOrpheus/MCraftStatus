@@ -167,7 +167,7 @@ class MCStatus {
      * Get the challenge - For servers with "enable-query" set to true.
      *
      */
-    public function getChallenge() {
+    protected function getChallenge() {
         $in = $this->write(0x09);
         $this->challenge = pack('N', $in);
         return $this->challenge;
@@ -180,7 +180,7 @@ class MCStatus {
      * @return The response
      *
      */
-    public function write($packet, $data = '') {
+    protected function write($packet, $data = '') {
         if(!$this->socket) {
             return false;
         }
