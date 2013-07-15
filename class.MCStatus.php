@@ -32,7 +32,7 @@ class MCStatus {
      *
      */
     public function setServer($ip, $port = 25565) {
-        if($port === null) {
+        if($port === null || !is_integer($port)) {
             $port = 25565;
         }
 
@@ -58,6 +58,7 @@ class MCStatus {
         if(!$this->socket) {
             throw new \Exception('Error while spawning socket: "' . $errstr . '"');
         }
+        stream_set_timeout($this->socket, 5);
 
         if($enableQuery === true) {
             $challenge = $this->getChallenge();
@@ -70,7 +71,7 @@ class MCStatus {
             $this->status = $this->write(0x00, $challenge . pack('c*', 0x00, 0x00, 0x00, 0x00));
             $this->status = substr($this->status, 11);
             $this->status = explode("\x00\x00\x01player_\x00\x00", $this->status);
-            $players = substr($this->status[1], 0, -2);
+            $players = isset($this->status[1]) ? substr($this->status[1], 0, -2) : '';
             $players = $players == true ? explode($players, 0x00) : array();
             $this->status = explode("\x00", $this->status[0]);
             $array = array();
@@ -78,10 +79,22 @@ class MCStatus {
             foreach($this->status as $key => $s) {
                 if($key % 2 == 0 && isset($this->status[$key + 1])) {
                     $array[$s] = $this->status[$key + 1];
+                    switch($s) {
+                        case 'hostname':
+                            $array[$s] = $this->formatString($array[$s]);
+                            break;
+
+                        case 'plugins':
+                            $plugins = explode(': ', $array[$s]);
+                            $serverVersion = $plugins[0];
+                            $pluginList = explode('; ', $plugins[1]);
+                            $array['server'] = $serverVersion;
+                            $array['plugins'] = $pluginList;
+                            break;
+                    }
                 }
             }
 
-            $array['hostname'] = $format === true ? $this->formatString($array['hostname']) : $array['hostname'];
             $array['players'] = $players;
             return $array;
         } else {
@@ -171,8 +184,7 @@ class MCStatus {
         }
 
         $data = fread($this->socket, 2048);
-        
-        if(strlen($data) < 5 || $data[0] != $this->lastPacket[2]) {
+        if(!$data || strlen($data) < 5 || $data[ 0 ] != $this->lastPacket[2]) {
             return false;
         }
 
