@@ -128,10 +128,10 @@ class MCStatus {
                     'ip'         => $this->ip,
                     'port'       => $this->port,
                     'online'     => true,
-                    'version'    => $result[0],
-                    'motd'       => $motd,
-                    'players'    => (int) $result[count($result) - 2],
-                    'maxPlayers' => (int) $result[count($result) - 1],
+                    'server'    => $result[0],
+                    'hostname'       => $motd,
+                    'numplayers'    => (int) $result[count($result) - 2],
+                    'maxplayers' => (int) $result[count($result) - 1],
                     'lat'        => $latency
                 );
                 return $this->status;
