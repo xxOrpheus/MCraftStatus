@@ -56,22 +56,18 @@ class MCStatus {
         $udp = $enableQuery === true ? 'udp://' : '';
         $start = microtime(true);
         $this->socket = @fsockopen($udp . $this->ip, $this->port, $errno, $errstr, 5);
+        
         if(!$this->socket) {
-            throw new \Exception('Error while spawning socket: "' . $errstr . '"');
+            $this->status['online'] = false;
+            return $this->status;
         }
-
+        
         stream_set_timeout($this->socket, 5);
 
         if($enableQuery === true) {
             $challenge = $this->getChallenge();
             $end = microtime(true);
         	$latency = floor(($end - $start) * 1000);
-
-            if($this->socket === false) {
-                $this->status['online'] = false;
-                return $this->status;
-            }
-
             $this->status = $this->write(0x00, $challenge . pack('c*', 0x00, 0x00, 0x00, 0x00));
             $this->status = substr($this->status, 11);
             $this->status = explode("\x00\x00\x01player_\x00\x00", $this->status);
@@ -106,6 +102,7 @@ class MCStatus {
             $array['players'] = $players;
             $array['ip'] = $this->ip;
             $array['lat'] = $latency;
+            $array['online'] = true;
             return $array;
         } else {
             fwrite($this->socket, "\xFE\x01");
