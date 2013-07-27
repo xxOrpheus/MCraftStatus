@@ -3,11 +3,12 @@ namespace Orpheus;
 
 class MCStatus {
     protected $status = array('online'     => false,
-                              'version'    => null,
-                              'motd'       => null,
-                              'players'    => -1,
-                              'maxPlayers' => -1);
+                              'server'     => 'null',
+                              'hostname'   => 'null',
+                              'numplayers' => 1,
+                              'maxplayers' => 1);
     protected $socket = null, $challenge = null, $lastPacket = null;
+    protected $compatibilityMode = false;
 
     /**
      *
@@ -52,8 +53,8 @@ class MCStatus {
      * @return mixed
      *
      */
-    public function getStatus($format = true, $enableQuery = false) {
-        $udp = $enableQuery === true ? 'udp://' : '';
+    public function getStatus($format = true) {
+        $udp = $this->compatibilityMode === false ? 'udp://' : '';
         $start = microtime(true);
         $this->socket = @fsockopen($udp . $this->ip, $this->port, $errno, $errstr, 5);
         
@@ -64,11 +65,16 @@ class MCStatus {
         
         stream_set_timeout($this->socket, 5);
 
-        if($enableQuery === true) {
+        if($this->compatibilityMode === false) {
             $challenge = $this->getChallenge();
             $end = microtime(true);
-        	$latency = floor(($end - $start) * 1000);
-            $this->status = $this->write(0x00, $challenge . pack('c*', 0x00, 0x00, 0x00, 0x00));
+            $latency = floor(($end - $start) * 1000);
+            try {
+                $this->status = $this->write(0x00, $challenge . pack('c*', 0x00, 0x00, 0x00, 0x00));
+            } catch(\Exception $e) {
+            	$this->compatibilityMode = true;
+            	return $this->getStatus($format);
+            }
             $this->status = substr($this->status, 11);
             $this->status = explode("\x00\x00\x01player_\x00\x00", $this->status);
             $players = isset($this->status[1]) ? substr($this->status[1], 0, -2) : '';
@@ -81,14 +87,14 @@ class MCStatus {
                     $array[$s] = $this->status[$key + 1];
                     switch($s) {
                         case 'hostname':
-                            $array[$s] = $this->formatString($array[$s]);
+                            $array['hostname'] = $format === true ? $this->formatString($array['hostname']) : preg_replace('/(§(\d))/', '', $array['hostname']);
                             break;
 
                         case 'plugins':
                             $plugins = explode(': ', $array[$s]);
                             if(!isset($plugins[1])) {
-                            	$array['server'] = 'Vanilla';
-                            	break;
+                                $array['server'] = 'Vanilla';
+                                break;
                             }
                             $serverVersion = $plugins[0];
                             $pluginList = explode('; ', $plugins[1]);
@@ -106,28 +112,27 @@ class MCStatus {
             return $array;
         } else {
             fwrite($this->socket, "\xFE\x01");
-        	$end = microtime(true);
-        	$latency = floor(($end - $start) * 1000);
+            $end = microtime(true);
+            $latency = floor(($end - $start) * 1000);
 
-            $result = fread($this->socket, 256);
-
+            $result = fread($this->socket, 2048);
             if(substr($result, 0, 1) != "\xff") {
                 $this->status['online'] = false;
                 return $this->status;
             } else {
                 if(substr($result, 3, 5) == "\x00\xa7\x00\x31\x00"){
                     $result = mb_convert_encoding(substr($result, 15), 'UTF-8', 'UCS-2');
-                    $result = explode("\x00", $result);
                 }
+                $result = explode("\x00", $result);
 
                 $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
                 $this->status = array(
                     'ip'         => $this->ip,
                     'port'       => $this->port,
                     'online'     => true,
-                    'server'    => $result[0],
-                    'hostname'       => $motd,
-                    'numplayers'    => (int) $result[count($result) - 2],
+                    'server'     => $result[0],
+                    'hostname'   => $motd,
+                    'numplayers' => (int) $result[count($result) - 2],
                     'maxplayers' => (int) $result[count($result) - 1],
                     'lat'        => $latency
                 );
@@ -145,6 +150,7 @@ class MCStatus {
      * @return string
      */
     protected function formatString($string) {
+        //$string = mb_convert_encoding($string, 'UTF-8');
         preg_match_all('/(§([\d\w]))/', $string, $formats);
 
         $replacements = json_decode(file_get_contents(__DIR__ . '/formats.json'), true);
@@ -168,9 +174,14 @@ class MCStatus {
      *
      */
     protected function getChallenge() {
-        $in = $this->write(0x09);
-        $this->challenge = pack('N', $in);
-        return $this->challenge;
+    	try {
+        	$in = $this->write(0x09);
+        	$this->challenge = pack('N', $in);
+        	return $this->challenge;
+        } catch(\Exception $e) {
+        	$this->compatibilityMode = true;
+        	return null;
+        }
     }
 
     /**
