@@ -53,8 +53,8 @@ class MCStatus {
      * @return mixed
      *
      */
-    public function getStatus($format = true) {
-        $udp = $this->compatibilityMode === false ? 'udp://' : '';
+    public function getStatus($format = true, $enableQuery = false) {
+        $udp = $this->compatibilityMode === false && $enableQuery ? 'udp://' : '';
         $start = microtime(true);
         $this->socket = @fsockopen($udp . $this->ip, $this->port, $errno, $errstr, 5);
         
@@ -65,7 +65,7 @@ class MCStatus {
         
         stream_set_timeout($this->socket, 5);
 
-        if($this->compatibilityMode === false) {
+        if($this->compatibilityMode === false && $enableQuery) {
             $challenge = $this->getChallenge();
             $end = microtime(true);
             $latency = floor(($end - $start) * 1000);
@@ -124,13 +124,13 @@ class MCStatus {
                     $result = mb_convert_encoding(substr($result, 15), 'UTF-8', 'UCS-2');
                 }
                 $result = explode("\x00", $result);
-
                 $motd = $format == true ? $this->formatString($result[count($result) - 3]) : preg_replace('/(§(\d))/', '', $result[count($result) - 3]);
+                $version = $result[count($result) - 4];
                 $this->status = array(
                     'ip'         => $this->ip,
                     'port'       => $this->port,
                     'online'     => true,
-                    'server'     => $result[0],
+                    'server'     => $version,
                     'hostname'   => $motd,
                     'numplayers' => (int) $result[count($result) - 2],
                     'maxplayers' => (int) $result[count($result) - 1],
