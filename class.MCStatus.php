@@ -150,9 +150,10 @@ class MCStatus {
      * @return string
      */
     protected function formatString($string) {
-        //$string = mb_convert_encoding($string, 'UTF-8');
+        if(!$this->detectUTF8($string)) {
+            $string = mb_convert_encoding($string, 'UTF-8');
+        } 
         preg_match_all('/(§([\d\w]))/', $string, $formats);
-
         $replacements = json_decode(file_get_contents(__DIR__ . '/formats.json'), true);
             
         $tags = 0;
@@ -211,6 +212,18 @@ class MCStatus {
         }
 
         return substr($data, 5);
+    }
+
+    protected function detectUTF8($string) { // http://ca2.php.net/manual/en/function.mb-detect-encoding.php#68607 thanks guy!
+            return preg_match('%(?:
+            [\xC2-\xDF][\x80-\xBF]        # non-overlong 2-byte
+            |\xE0[\xA0-\xBF][\x80-\xBF]               # excluding overlongs
+            |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}      # straight 3-byte
+            |\xED[\x80-\x9F][\x80-\xBF]               # excluding surrogates
+            |\xF0[\x90-\xBF][\x80-\xBF]{2}    # planes 1-3
+            |[\xF1-\xF3][\x80-\xBF]{3}                  # planes 4-15
+            |\xF4[\x80-\x8F][\x80-\xBF]{2}    # plane 16
+            )+%xs', $string);
     }
 }
 ?>
